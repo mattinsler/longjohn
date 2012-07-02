@@ -12,19 +12,19 @@ exports.format_stack_frame = function(frame) {
     if (frame.isNative()) { return 'native'; }
     if (frame.isEval()) { return 'eval at ' + frame.getEvalOrigin(); }
     var file = frame.getFileName()
-      , line = frame.getLineNumber();
+      , line = frame.getLineNumber()
       , column = frame.getColumnNumber();
     return !file ? 'unknown source' : file + (!line ? '' : ':' + line + (!column ? '' : ':' + column));
   };
   var format_method = function(frame) {
-    var function = frame.getFunctionName();
+    var function_name = frame.getFunctionName();
     
-    if (!(frame.isTopLevel() || frame.isConstructor())) {
+    if (!(frame.isToplevel() || frame.isConstructor())) {
       var method = frame.getMethodName();
-      return frame.getTypeName() + '.' + (!function ? method || '<anonymous>' : function + (method && method !== function ? ' [as ' + method + ']' : ''));
+      return frame.getTypeName() + '.' + (!function_name ? method || '<anonymous>' : function_name + (method && method !== function_name ? ' [as ' + method + ']' : ''));
     }
-    if (frame.isConstructor()) { return 'new ' + (function || '<anonymous>'); }
-    if (function) { return function; }
+    if (frame.isConstructor()) { return 'new ' + (function_name || '<anonymous>'); }
+    if (function_name) { return function_name; }
     return null;
   };
   
@@ -38,8 +38,9 @@ exports.format_stack = function(err, frames) {
   try {
     lines.push(err.toString());
   } catch (e) {
+    console.log('Caught error in longjohn.  Please report this to matt.insler@gmail.com.');
   }
-  Array.prototype.push(lines, frames.map(exports.format_stack_frame));
+  Array.prototype.push.apply(lines, frames.map(exports.format_stack_frame));
   return lines.join('\n');
 };
 
@@ -88,12 +89,13 @@ var wrap_callback = function(callback, location) {
     try {
       callback.apply(this, arguments);
     } catch (e) {
-      console.log('UNCAUGHT ERROR: ' + e.stack);
+      // Ensure we're formatting the Error in longjohn
+      e.stack;
       throw e;
     } finally {
       current_trace_error = null;
     }
-  }; 
+  };
   
   new_callback.__original_callback__ = callback;
   return new_callback;
@@ -128,7 +130,7 @@ EventEmitter.prototype.removeListener = function(event, callback) {
     if (!_this._events || !_this._events[event]) { return null; }
     if (Array.isArray(_this._events[event])) {
       var l;
-      for (l in (_this._events[events] || [])) {
+      for (l in (_this._events[event] || [])) {
         if (is_callback(l)) {
           return l;
         }
@@ -140,7 +142,7 @@ EventEmitter.prototype.removeListener = function(event, callback) {
   };
     
   var listener = find_listener();
-  if (listener && typeof(listener) === 'function') { return this; }
+  if (!listener || typeof(listener) !== 'function') { return this; }
   return _removeListener.call(this, event, listener);
 }
 
