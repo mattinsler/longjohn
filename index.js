@@ -4,6 +4,7 @@ var EventEmitter = require('events').EventEmitter
   , in_prepare = 0;
 
 exports.empty_frame = '---------------------------------------------';
+exports.async_trace_limit = 10;
 
 exports.format_stack_frame = function(frame) {
   if (frame.getFileName() === exports.empty_frame) { return exports.empty_frame; }
@@ -57,32 +58,48 @@ var create_callsite = function(location) {
 };
 
 Error.prepareStackTrace = function(error, structured_stack_trace) {
-  if (error.__cached_trace__) { return error.__cached_trace__; }
   error.__cached_trace__ = structured_stack_trace.filter(function(f) {
     return f.getFileName() !== filename;
   });
-  if (error.__previous__) { return error.__cached_trace__; }
   
-  var previous = current_trace_error;
-  while (previous) {
-    ++in_prepare;
-    previous_trace = previous.stack;
-    --in_prepare;
-    if (previous_trace) {
-      error.__cached_trace__.push(create_callsite(exports.empty_frame));
-      Array.prototype.push.apply(error.__cached_trace__, previous_trace);
-    }
-    previous = previous.__previous__;
+  if (!error.__previous__ && current_trace_error) {
+    error.__previous__ = current_trace_error;
   }
   
+  ++in_prepare;
+  var previous_trace = error.__previous__ ? error.__previous__.stack : null;
+  --in_prepare;
+  if (previous_trace) {
+    error.__cached_trace__.push(create_callsite(exports.empty_frame));
+    Array.prototype.push.apply(error.__cached_trace__, previous_trace);
+  }
+
   if (in_prepare > 0) { return error.__cached_trace__; }
   return exports.format_stack(error, error.__cached_trace__);
+};
+
+var limit_frames = function(stack) {
+  if (exports.async_trace_limit <= 0 || (stack && stack.__trace_count__ < exports.async_trace_limit)) { return; }
+  
+  var count = 1
+    , previous = stack;
+  while (previous) {
+    if (count >= exports.async_trace_limit) {
+      delete previous.__previous__;
+      return;
+    }
+    previous = previous.__previous__;
+    ++count;
+  }
 };
 
 var wrap_callback = function(callback, location) {
   var trace_error = new Error();
   trace_error.__location__ = location;
   trace_error.__previous__ = current_trace_error;
+  trace_error.__trace_count__ = current_trace_error ? current_trace_error.__trace_count__ + 1 : 1;
+
+  limit_frames(trace_error);
   
   var new_callback = function() {
     current_trace_error = trace_error;
