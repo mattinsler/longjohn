@@ -10,13 +10,17 @@ So what to do...  I stole the code and rewrote it.  I've added support for remov
 
 Please thank [tlrobinson](https://github.com/tlrobinson) for the initial implementation!
 
-## Usage
+## Installation
 
-To use longjohn, just npm install it and require it in your code (probably in some initialization code).  That's all!
+Just npm install it!
 
 ```bash
 $ npm install longjohn
 ```
+
+## Usage
+
+To use longjohn, require it in your code (probably in some initialization code).  That's all!
 
 ```javascript
 require('longjohn');
