@@ -30,3 +30,49 @@ var foo = function() {
 }
 
 foo();
+
+
+
+// test removeListener
+
+var foo = function() {
+  console.log('foo');
+};
+
+var emitter = new (require('events').EventEmitter)();
+
+emitter.on('foo', foo);
+emitter.on('foo', foo);
+emitter.on('foo', foo);
+
+console.log('Print 3 times');
+emitter.emit('foo');
+// should print foo 3 times
+
+emitter.on('foo', foo);
+emitter.on('foo', foo);
+emitter.on('foo', foo);
+emitter.on('foo', foo);
+emitter.on('foo', foo);
+emitter.on('foo', foo);
+emitter.on('foo', foo);
+emitter.on('foo', foo);
+emitter.on('foo', foo);
+emitter.on('foo', foo);
+
+emitter.removeListener('foo', foo);
+emitter.removeListener('foo', foo);
+emitter.removeListener('foo', foo);
+emitter.removeListener('foo', foo);
+emitter.removeListener('foo', foo);
+emitter.removeListener('foo', foo);
+emitter.removeListener('foo', foo);
+emitter.removeListener('foo', foo);
+emitter.removeListener('foo', foo);
+emitter.removeListener('foo', foo);
+emitter.removeListener('foo', foo);
+emitter.removeListener('foo', foo);
+
+console.log('Print once');
+emitter.emit('foo');
+// should print foo 1 time
