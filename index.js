@@ -141,7 +141,9 @@ EventEmitter.prototype.removeListener = function(event, callback) {
   var _this = this;
   var find_listener = function(callback) {
     var is_callback = function(val) {
-      return val.__original_callback__ === callback || (val.listener && val.listener.__original_callback__ === callback);
+      return val.__original_callback__ === callback ||
+             (val.__original_callback__ && val.__original_callback__.listener && val.__original_callback__.listener.__original_callback__ === callback) ||
+             (val.listener && val.listener.__original_callback__ === callback);
     };
     
     if (!_this._events || !_this._events[event]) { return null; }
