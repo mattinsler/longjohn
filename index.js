@@ -103,6 +103,9 @@ var wrap_callback = function(callback, location) {
   
   var new_callback = function() {
     current_trace_error = trace_error;
+    // Clear trace_error variable from the closure, so it can potentially be garbage collected.
+    trace_error = null;
+
     try {
       callback.apply(this, arguments);
     } catch (e) {
