@@ -76,3 +76,8 @@ emitter.removeListener('foo', foo);
 console.log('Print once');
 emitter.emit('foo');
 // should print foo 1 time
+
+should show { '0': 1, '1': 2, '2': 3 }
+setTimeout(function () {console.log(arguments);}, 1000, 1, 2, 3);
+//should show { '0': 1, '1': 2, '2': 3 }
+setInterval(function () {console.log(arguments);}, 1000, 1, 2, 3);

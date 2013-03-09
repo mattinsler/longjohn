@@ -2,7 +2,7 @@
   "author": "Matt Insler <matt.insler@gmail.com> (www.mattinsler.com)",
   "name": "longjohn",
   "description": "Long stack traces for node.js inspired by https://github.com/tlrobinson/long-stack-traces",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "repository": {
     "type": "git",
     "url": "git@github.com:mattinsler/longjohn.git"

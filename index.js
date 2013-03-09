@@ -129,15 +129,21 @@ var _on = EventEmitter.prototype.on
   , _removeListener = EventEmitter.prototype.removeListener;
 
 EventEmitter.prototype.addListener = function(event, callback) {
-  return _addListener.call(this, event, wrap_callback(callback, 'EventEmitter.addListener'));
+  var args = Array.prototype.slice.call(arguments);
+  args[1] = wrap_callback(callback, 'EventEmitter.addListener');
+  return _addListener.apply(this, args);
 };
 
 EventEmitter.prototype.on = function(event, callback) {
-  return _on.call(this, event, wrap_callback(callback, 'EventEmitter.on'));
+  var args = Array.prototype.slice.call(arguments);
+  args[1] = wrap_callback(callback, 'EventEmitter.on');
+  return _on.apply(this, args);
 };
 
 EventEmitter.prototype.once = function(event, callback) {
-  return _once.call(this, event, wrap_callback(callback, 'EventEmitter.once'));
+  var args = Array.prototype.slice.call(arguments);
+  args[1] = wrap_callback(callback, 'EventEmitter.once');
+  return _once.apply(this, args);
 };
 
 EventEmitter.prototype.removeListener = function(event, callback) {
@@ -173,7 +179,9 @@ EventEmitter.prototype.removeListener = function(event, callback) {
 var _nextTick = process.nextTick;
 
 process.nextTick = function(callback) {
-  return _nextTick.call(this, wrap_callback(callback, 'process.nextTick'));
+  var args = Array.prototype.slice.call(arguments);
+  args[0] = wrap_callback(callback, 'process.nextTick');
+  return _nextTick.apply(this, args);
 };
 
 
@@ -181,10 +189,14 @@ process.nextTick = function(callback) {
 var _setTimeout = global.setTimeout
   , _setInterval = global.setInterval;
 
-global.setTimeout = function(callback, interval) {
-  return _setTimeout.call(this, wrap_callback(callback, 'process.nextTick'), interval);
+global.setTimeout = function(callback) {
+  var args = Array.prototype.slice.call(arguments);
+  args[0] = wrap_callback(callback, 'process.nextTick');
+  return _setTimeout.apply(this, args);
 };
 
-global.setInterval = function(callback, interval) {
-  return _setInterval.call(this, wrap_callback(callback, 'process.nextTick'), interval);
+global.setInterval = function(callback) {
+  var args = Array.prototype.slice.call(arguments);
+  args[0] = wrap_callback(callback, 'process.nextTick');
+  return _setInterval.apply(this, args);
 };
