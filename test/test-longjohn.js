@@ -21,7 +21,8 @@ describe('longjohn', function() {
   
   it('should track frames across setTimeout', function(done) {
     setTimeout(function() {
-      console.log(new Error('foobar').stack);
+      assert.equal(new Error('foobar').stack.split(longjohn.empty_frame).length, 2);
+      done();
     }, 1);
   });
   
@@ -32,15 +33,7 @@ describe('longjohn', function() {
 
     var foo = function() {
       if (++counter > 3) {
-        assert.throws(function() {
-          try {
-            throw new Error('foo');
-          } catch (e) {
-            throw e;
-          }
-        }, function(err) {
-          return err.stack.split(longjohn.empty_frame).length === 3;
-        });
+        assert.equal(new Error('foo').stack.split(longjohn.empty_frame).length, 3);
         return done();
       }
       setTimeout(foo, 1);
@@ -90,13 +83,14 @@ describe('longjohn', function() {
     setTimeout(function() {
       assert.deepEqual(Array.prototype.slice.call(arguments), [1, 2, 3]);
       done();
-    }, 1000, 1, 2, 3);
+    }, 1, 1, 2, 3);
   });
   
   it('should work with setInterval', function(done) {
-    setInterval(function() {
+    var interval_id = setInterval(function() {
       assert.deepEqual(Array.prototype.slice.call(arguments), [1, 2, 3]);
+      clearInterval(interval_id);
       done();
-    }, 1000, 1, 2, 3);
+    }, 1, 1, 2, 3);
   });
 });

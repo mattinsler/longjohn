@@ -58,25 +58,23 @@ var create_callsite = function(location) {
 };
 
 Error.prepareStackTrace = function(error, structured_stack_trace) {
-  console.log('Error.prepareStackTrace');
-  console.log(arguments);
   error.__cached_trace__ = structured_stack_trace.filter(function(f) {
-    console.log(f);
     return f.getFileName() !== filename;
   });
   
-  if (!error.__previous__ && current_trace_error) {
+  if (!error.__previous__ && current_trace_error && current_trace_error !== error) {
     error.__previous__ = current_trace_error;
   }
   
   ++in_prepare;
   var previous_trace = error.__previous__ ? error.__previous__.stack : null;
   --in_prepare;
+  
   if (previous_trace) {
     error.__cached_trace__.push(create_callsite(exports.empty_frame));
     Array.prototype.push.apply(error.__cached_trace__, previous_trace);
   }
-
+  
   if (in_prepare > 0) { return error.__cached_trace__; }
   return exports.format_stack(error, error.__cached_trace__);
 };
