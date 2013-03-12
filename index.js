@@ -58,7 +58,10 @@ var create_callsite = function(location) {
 };
 
 Error.prepareStackTrace = function(error, structured_stack_trace) {
+  console.log('Error.prepareStackTrace');
+  console.log(arguments);
   error.__cached_trace__ = structured_stack_trace.filter(function(f) {
+    console.log(f);
     return f.getFileName() !== filename;
   });
   
