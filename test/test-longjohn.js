@@ -26,6 +26,32 @@ describe('longjohn', function() {
     }, 1);
   });
   
+  it('should work for issue #10', function(done) {
+    function a(){
+      b();
+    }
+
+    function b(){
+      assert.equal(new Error('this is uncaught!').stack.split(longjohn.empty_frame).length, 2);
+      return done();
+    }
+
+    setTimeout(a, 0);
+  });
+  
+  it('should work for issue #10-2', function(done) {
+    function a(){
+      setTimeout(b, 0);
+    }
+
+    function b(){
+      assert.equal(new Error('this is uncaught!').stack.split(longjohn.empty_frame).length, 3);
+      return done();
+    }
+
+    setTimeout(a, 0);
+  });
+  
   it('should allow stack size limiting', function(done) {
     longjohn.async_trace_limit = 2;
 
