@@ -1,20 +1,38 @@
 {
-  "author": "Matt Insler <matt.insler@gmail.com> (www.mattinsler.com)",
   "name": "longjohn",
   "description": "Long stack traces for node.js inspired by https://github.com/tlrobinson/long-stack-traces",
-  "version": "0.0.5",
+  "version": "0.2.0",
+  "homepage": "https://github.com/mattinsler/longjohn",
+  "author": {
+    "name": "Matt Insler",
+    "email": "matt.insler@gmail.com",
+    "url": "http://www.mattinsler.com"
+  },
   "repository": {
     "type": "git",
-    "url": "git@github.com:mattinsler/longjohn.git"
+    "url": "git://github.com/mattinsler/longjohn.git"
   },
+  "bugs": {
+    "url": "https://github.com/mattinsler/longjohn/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/mattinsler/longjohn/blob/master/LICENSE-MIT"
+    }
+  ],
+  "main": "dist/longjohn",
   "engines": {
     "node": ">= 0.6.0"
   },
   "devDependencies": {
-    "mocha": "latest"
+    "grunt": "~0.3.15",
+    "grunt-contrib": "~0.3.0",
+    "mocha": "latest",
+    "coffee-script": "latest"
   },
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha -R spec"
+    "test": "node_modules/mocha/bin/mocha --compilers coffee:coffee-script -R spec"
   },
-  "main": "index"
+  "keywords": []
 }
