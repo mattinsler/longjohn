@@ -190,12 +190,12 @@ _setInterval = global.setInterval
 
 global.setTimeout = (callback) ->
   args = Array::slice.call(arguments)
-  args[0] = wrap_callback(callback, 'process.nextTick')
+  args[0] = wrap_callback(callback, 'global.setTimeout')
   _setTimeout.apply(this, args)
 
 global.setInterval = (callback) ->
   args = Array::slice.call(arguments)
-  args[0] = wrap_callback(callback, 'process.nextTick')
+  args[0] = wrap_callback(callback, 'global.setInterval')
   _setInterval.apply(this, args)
 
 Error.prepareStackTrace = prepareStackTrace
