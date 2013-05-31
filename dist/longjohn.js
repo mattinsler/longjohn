@@ -298,7 +298,7 @@
     var args;
 
     args = Array.prototype.slice.call(arguments);
-    args[0] = wrap_callback(callback, 'process.nextTick');
+    args[0] = wrap_callback(callback, 'global.setTimeout');
     return _setTimeout.apply(this, args);
   };
 
@@ -306,7 +306,7 @@
     var args;
 
     args = Array.prototype.slice.call(arguments);
-    args[0] = wrap_callback(callback, 'process.nextTick');
+    args[0] = wrap_callback(callback, 'global.setInterval');
     return _setInterval.apply(this, args);
   };
 
