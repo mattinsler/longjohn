@@ -184,9 +184,17 @@ process.nextTick = (callback) ->
   _nextTick.apply(this, args)
 
 
+__nextDomainTick = process._nextDomainTick
+
+process._nextDomainTick = (callback) ->
+  args = Array::slice.call(arguments)
+  args[0] = wrap_callback(callback, 'process.nextDomainTick')
+  __nextDomainTick.apply(this, args)
+
 
 _setTimeout = global.setTimeout
 _setInterval = global.setInterval
+_setImmediate = global.setImmediate
 
 global.setTimeout = (callback) ->
   args = Array::slice.call(arguments)
@@ -197,5 +205,10 @@ global.setInterval = (callback) ->
   args = Array::slice.call(arguments)
   args[0] = wrap_callback(callback, 'process.nextTick')
   _setInterval.apply(this, args)
+
+global.setImmediate = (callback) ->
+  args = Array::slice.call(arguments)
+  args[0] = wrap_callback(callback, 'global.setImmediate')
+  _setImmediate.apply(this, args)
 
 Error.prepareStackTrace = prepareStackTrace
