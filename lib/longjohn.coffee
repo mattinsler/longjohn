@@ -137,6 +137,7 @@ _on = EventEmitter.prototype.on
 _addListener = EventEmitter.prototype.addListener
 _once = EventEmitter.prototype.once
 _removeListener = EventEmitter.prototype.removeListener
+_listeners = EventEmitter.prototype.listeners
 
 EventEmitter.prototype.addListener = (event, callback) ->
   args = Array::slice.call(arguments)
@@ -174,7 +175,15 @@ EventEmitter.prototype.removeListener = (event, callback) ->
   return @ unless listener? and typeof listener is 'function'
   _removeListener.call(@, event, listener)
 
-
+EventEmitter.prototype.listeners = (event) ->
+  listeners = _listeners.call(this, event)
+  unwrapped = []
+  for l in listeners
+    if l.__original_callback__
+      unwrapped.push l.__original_callback__
+    else
+      unwrapped.push l
+  return unwrapped
 
 _nextTick = process.nextTick
 
