@@ -91,3 +91,10 @@ describe 'longjohn', ->
       clearInterval(interval_id)
       done()
     , 1, 1, 2, 3
+
+  it 'should work with setImmediate', (done) ->
+    immediate_id = setImmediate ->
+      assert.deepEqual(Array::slice.call(arguments), [1, 2, 3])
+      clearImmediate(immediate_id)
+      done()
+    , 1, 2, 3

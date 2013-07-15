@@ -137,6 +137,7 @@ _on = EventEmitter.prototype.on
 _addListener = EventEmitter.prototype.addListener
 _once = EventEmitter.prototype.once
 _removeListener = EventEmitter.prototype.removeListener
+_listeners = EventEmitter.prototype.listeners
 
 EventEmitter.prototype.addListener = (event, callback) ->
   args = Array::slice.call(arguments)
@@ -174,7 +175,15 @@ EventEmitter.prototype.removeListener = (event, callback) ->
   return @ unless listener? and typeof listener is 'function'
   _removeListener.call(@, event, listener)
 
-
+EventEmitter.prototype.listeners = (event) ->
+  listeners = _listeners.call(this, event)
+  unwrapped = []
+  for l in listeners
+    if l.__original_callback__
+      unwrapped.push l.__original_callback__
+    else
+      unwrapped.push l
+  return unwrapped
 
 _nextTick = process.nextTick
 
@@ -184,9 +193,17 @@ process.nextTick = (callback) ->
   _nextTick.apply(this, args)
 
 
+__nextDomainTick = process._nextDomainTick
+
+process._nextDomainTick = (callback) ->
+  args = Array::slice.call(arguments)
+  args[0] = wrap_callback(callback, 'process.nextDomainTick')
+  __nextDomainTick.apply(this, args)
+
 
 _setTimeout = global.setTimeout
 _setInterval = global.setInterval
+_setImmediate = global.setImmediate
 
 global.setTimeout = (callback) ->
   args = Array::slice.call(arguments)
@@ -197,5 +214,10 @@ global.setInterval = (callback) ->
   args = Array::slice.call(arguments)
   args[0] = wrap_callback(callback, 'global.setInterval')
   _setInterval.apply(this, args)
+
+global.setImmediate = (callback) ->
+  args = Array::slice.call(arguments)
+  args[0] = wrap_callback(callback, 'global.setImmediate')
+  _setImmediate.apply(this, args)
 
 Error.prepareStackTrace = prepareStackTrace
