@@ -1,7 +1,7 @@
 {
   "name": "longjohn",
   "description": "Long stack traces for node.js inspired by https://github.com/tlrobinson/long-stack-traces",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "homepage": "https://github.com/mattinsler/longjohn",
   "author": {
     "name": "Matt Insler",

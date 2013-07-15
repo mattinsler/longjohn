@@ -203,7 +203,6 @@ process._nextDomainTick = (callback) ->
 
 _setTimeout = global.setTimeout
 _setInterval = global.setInterval
-_setImmediate = global.setImmediate
 
 global.setTimeout = (callback) ->
   args = Array::slice.call(arguments)
@@ -215,9 +214,12 @@ global.setInterval = (callback) ->
   args[0] = wrap_callback(callback, 'global.setInterval')
   _setInterval.apply(this, args)
 
-global.setImmediate = (callback) ->
-  args = Array::slice.call(arguments)
-  args[0] = wrap_callback(callback, 'global.setImmediate')
-  _setImmediate.apply(this, args)
+if global.setImmediate?
+  _setImmediate = global.setImmediate
+
+  global.setImmediate = (callback) ->
+    args = Array::slice.call(arguments)
+    args[0] = wrap_callback(callback, 'global.setImmediate')
+    _setImmediate.apply(this, args)
 
 Error.prepareStackTrace = prepareStackTrace
