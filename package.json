@@ -26,8 +26,8 @@
     "node": ">= 0.6.0"
   },
   "devDependencies": {
-    "grunt": "~0.3.15",
-    "grunt-contrib": "~0.3.0",
+    "grunt": "~0.4.0",
+    "grunt-contrib-coffee": "~0.7.0",
     "mocha": "latest",
     "coffee-script": "latest"
   },

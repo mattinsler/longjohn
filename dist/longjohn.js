@@ -69,11 +69,12 @@
   };
 
   exports.format_stack = function(err, frames) {
-    var lines;
+    var e, lines;
     lines = [];
     try {
       lines.push(err.toString());
-    } catch (e) {
+    } catch (_error) {
+      e = _error;
       console.log('Caught error in longjohn. Please report this to matt.insler@gmail.com.');
     }
     lines.push.apply(lines, frames.map(exports.format_stack_frame));
@@ -113,7 +114,7 @@
       error.__cached_trace__ = structured_stack_trace.filter(function(f) {
         return f.getFileName() !== filename;
       });
-      if (!(error.__previous__ != null) && in_prepare === 1) {
+      if ((error.__previous__ == null) && in_prepare === 1) {
         error.__previous__ = current_trace_error;
       }
       if (error.__previous__ != null) {
@@ -172,11 +173,13 @@
     trace_error.__trace_count__ = current_trace_error != null ? current_trace_error.__trace_count__ + 1 : 1;
     limit_frames(trace_error);
     new_callback = function() {
+      var e;
       current_trace_error = trace_error;
       trace_error = null;
       try {
         return callback.apply(this, arguments);
-      } catch (e) {
+      } catch (_error) {
+        e = _error;
         e.stack;
         throw e;
       } finally {

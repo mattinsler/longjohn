@@ -1,6 +1,6 @@
 module.exports = function(grunt) {
   
-  grunt.loadNpmTasks('grunt-contrib');
+  grunt.loadNpmTasks('grunt-contrib-coffee');
 
   // Project configuration.
   grunt.initConfig({
@@ -8,7 +8,7 @@ module.exports = function(grunt) {
     coffee: {
       compile: {
         files: {
-          'dist/*.js': 'lib/*.coffee'
+          'dist/longjohn.js': 'lib/longjohn.coffee'
         }
       }
     }
