@@ -223,3 +223,9 @@ if global.setImmediate?
     _setImmediate.apply(this, args)
 
 Error.prepareStackTrace = prepareStackTrace
+
+if process.env.NODE_ENV == 'production'
+  console.warn '''
+    NOTICE: Longjohn is known to cause CPU usage due to its extensive data collection during runtime.
+    It generally should not be used in production applications.
+  '''

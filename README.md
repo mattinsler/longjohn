@@ -10,6 +10,12 @@ So what to do...  I stole the code and rewrote it.  I've added support for remov
 
 Please thank [tlrobinson](https://github.com/tlrobinson) for the initial implementation!
 
+## Production Use
+
+Longjohn collects a large amount of data in order to provide useful stack traces. While it is very helpful in
+development and testing environments, it is not recommended to use longjohn in production. The data collection puts
+a lot of strain on V8's garbage collector and can greatly slow down heavily-loaded applications. 
+
 ## Installation
 
 Just npm install it!
@@ -23,7 +29,9 @@ $ npm install longjohn
 To use longjohn, require it in your code (probably in some initialization code).  That's all!
 
 ```javascript
-require('longjohn');
+if (process.env.NODE_ENV !== 'production'){
+  require('longjohn');
+}
 
 // ... your code
 ```
