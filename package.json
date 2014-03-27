@@ -32,7 +32,7 @@
     "coffee-script": "latest"
   },
   "scripts": {
-    "test": "node_modules/mocha/bin/mocha --compilers coffee:coffee-script -R spec"
+    "test": "node_modules/mocha/bin/mocha --compilers coffee:coffee-script/register -R spec"
   },
   "keywords": []
 }
