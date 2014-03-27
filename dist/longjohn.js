@@ -21,12 +21,9 @@
     if (frame.isEval()) {
       return 'eval at ' + frame.getEvalOrigin();
     }
-    file = frame.getFileName();
+    file = frame.getFileName() || '<anonymous>';
     line = frame.getLineNumber();
     column = frame.getColumnNumber();
-    if (file == null) {
-      return 'unknown source';
-    }
     column = column != null ? ':' + column : '';
     line = line != null ? ':' + line : '';
     return file + line + column;

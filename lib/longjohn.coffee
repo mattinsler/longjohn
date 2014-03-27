@@ -11,10 +11,10 @@ format_location = (frame) ->
   return 'eval at ' + frame.getEvalOrigin() if frame.isEval()
   
   file = frame.getFileName()
+  file = frame.getFileName() || '<anonymous>'
   line = frame.getLineNumber()
   column = frame.getColumnNumber()
   
-  return 'unknown source' unless file?
   column = if column? then ':' + column else ''
   line = if line? then ':' + line else ''
   
