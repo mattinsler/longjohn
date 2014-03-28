@@ -157,6 +157,7 @@
     Error.captureStackTrace(err, arguments.callee);
     stack = err.stack;
     Error.prepareStackTrace = orig;
+    if(!stack[2]) return "bad call_stack_location";
     return "" + (stack[2].getFunctionName()) + " (" + (stack[2].getFileName()) + ":" + (stack[2].getLineNumber()) + ")";
   };
 
