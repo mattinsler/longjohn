@@ -21,6 +21,7 @@
     if (frame.isEval()) {
       return 'eval at ' + frame.getEvalOrigin();
     }
+    file = frame.getFileName();
     file = frame.getFileName() || '<anonymous>';
     line = frame.getLineNumber();
     column = frame.getColumnNumber();
@@ -157,7 +158,9 @@
     Error.captureStackTrace(err, arguments.callee);
     stack = err.stack;
     Error.prepareStackTrace = orig;
-    if(!stack[2]) return "bad call_stack_location";
+    if (stack[2] == null) {
+      return 'bad call_stack_location';
+    }
     return "" + (stack[2].getFunctionName()) + " (" + (stack[2].getFileName()) + ":" + (stack[2].getLineNumber()) + ")";
   };
 
