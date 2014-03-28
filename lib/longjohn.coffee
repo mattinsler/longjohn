@@ -101,7 +101,7 @@ call_stack_location = ->
   Error.captureStackTrace(err, arguments.callee)
   stack = err.stack
   Error.prepareStackTrace = orig
-  
+  return "bad call_stack_location" if not (stack[2])  
   "#{stack[2].getFunctionName()} (#{stack[2].getFileName()}:#{stack[2].getLineNumber()})"
 
 wrap_callback = (callback, location) ->
