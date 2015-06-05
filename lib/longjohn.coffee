@@ -90,7 +90,15 @@ limit_frames = (stack) ->
   while previous? and count > 1
     previous = previous.__previous__
     --count
-  delete previous.__previous__ if previous?
+  if previous?
+    which_previous_must_delete = previous
+    if previous?.__previous__?.__cached_trace__
+      len = previous.__previous__.__cached_trace__.length
+      previous = stack
+      while previous? and previous != which_previous_must_delete.__previous__
+        previous.__cached_trace__.length -= (len+1)
+        previous = previous.__previous__
+    delete previous.__previous__
 
 ERROR_ID = 1
 

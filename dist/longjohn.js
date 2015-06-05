@@ -131,7 +131,7 @@
   };
 
   limit_frames = function(stack) {
-    var count, previous;
+    var count, len, previous, which_previous_must_delete, _ref;
     if (exports.async_trace_limit <= 0) {
       return;
     }
@@ -142,6 +142,15 @@
       --count;
     }
     if (previous != null) {
+      which_previous_must_delete = previous;
+      if (previous != null ? (_ref = previous.__previous__) != null ? _ref.__cached_trace__ : void 0 : void 0) {
+        len = previous.__previous__.__cached_trace__.length;
+        previous = stack;
+        while ((previous != null) && previous !== which_previous_must_delete.__previous__) {
+          previous.__cached_trace__.length -= len + 1;
+          previous = previous.__previous__;
+        }
+      }
       return delete previous.__previous__;
     }
   };
