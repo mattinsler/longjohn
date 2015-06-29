@@ -9,7 +9,9 @@ describe 'longjohn', ->
     fs = require('fs')
     
     fs.readFile 'not_there.txt', 'utf8', (err, text) ->
-      return done() if err? and err instanceof Error and err.stack is "Error: ENOENT, open 'not_there.txt'"
+      return done() if err? and err instanceof Error and
+      (err.stack is "Error: ENOENT, open 'not_there.txt'" or
+       err.stack is "Error: ENOENT, open 'not_there.txt'\n    at Error (native)")
       assert.fail()
   
   it 'should track frames across setTimeout', (done) ->
