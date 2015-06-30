@@ -95,7 +95,7 @@ limit_frames = (stack) ->
     if previous?.__previous__?.__cached_trace__
       len = previous.__previous__.__cached_trace__.length
       previous = stack
-      while previous? and previous != which_previous_must_delete.__previous__
+      while previous? and previous != which_previous_must_delete.__previous__ and previous.__cached_trace__.length
         previous.__cached_trace__.length -= (len+1)
         previous = previous.__previous__
     delete previous.__previous__

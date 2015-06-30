@@ -146,7 +146,7 @@
       if (previous != null ? (_ref = previous.__previous__) != null ? _ref.__cached_trace__ : void 0 : void 0) {
         len = previous.__previous__.__cached_trace__.length;
         previous = stack;
-        while ((previous != null) && previous !== which_previous_must_delete.__previous__) {
+        while ((previous != null) && previous !== which_previous_must_delete.__previous__ && previous.__cached_trace__.length) {
           previous.__cached_trace__.length -= len + 1;
           previous = previous.__previous__;
         }
