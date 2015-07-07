@@ -71,7 +71,7 @@ prepareStackTrace = (error, structured_stack_trace) ->
     error.__previous__ = current_trace_error if !error.__previous__? and in_prepare is 1
     
     if error.__previous__?
-      previous_stack = error.__previous__.stack
+      previous_stack =prepareStackTrace(error.__previous__, error.__previous__.__stack__)
       if previous_stack?.length > 0
         error.__cached_trace__.push(create_callsite(exports.empty_frame))
         error.__cached_trace__.push(previous_stack...)
@@ -94,20 +94,18 @@ limit_frames = (stack) ->
 
 ERROR_ID = 1
 
-call_stack_location = ->
+wrap_callback = (callback, location) ->
   orig = Error.prepareStackTrace
   Error.prepareStackTrace = (x, stack) -> stack
-  err = new Error()
-  Error.captureStackTrace(err, arguments.callee)
-  stack = err.stack
-  Error.prepareStackTrace = orig
-  return 'bad call_stack_location' unless stack[2]?
-  "#{stack[2].getFunctionName()} (#{stack[2].getFileName()}:#{stack[2].getLineNumber()})"
-
-wrap_callback = (callback, location) ->
   trace_error = new Error()
+  Error.captureStackTrace(trace_error, arguments.callee)
+  trace_error.__stack__ = trace_error.stack;
+  Error.prepareStackTrace = orig
   trace_error.id = ERROR_ID++
-  trace_error.location = call_stack_location()
+  if trace_error.stack[1]
+    trace_error.location = "#{trace_error.stack[1].getFunctionName()} (#{trace_error.stack[1].getFileName()}:#{trace_error.stack[1].getLineNumber()})";
+  else
+    trace_error.location = 'bad call_stack_location'
   trace_error.__location__ = location
   trace_error.__previous__ = current_trace_error
   trace_error.__trace_count__ = if current_trace_error? then current_trace_error.__trace_count__ + 1 else 1

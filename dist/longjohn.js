@@ -1,5 +1,5 @@
 (function() {
-  var ERROR_ID, EventEmitter, call_stack_location, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _once, _removeListener, _setImmediate, _setInterval, _setTimeout;
+  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _once, _removeListener, _setImmediate, _setInterval, _setTimeout;
 
   EventEmitter = require('events').EventEmitter;
 
@@ -116,7 +116,7 @@
         error.__previous__ = current_trace_error;
       }
       if (error.__previous__ != null) {
-        previous_stack = error.__previous__.stack;
+        previous_stack = prepareStackTrace(error.__previous__, error.__previous__.__stack__);
         if ((previous_stack != null ? previous_stack.length : void 0) > 0) {
           error.__cached_trace__.push(create_callsite(exports.empty_frame));
           (_ref = error.__cached_trace__).push.apply(_ref, previous_stack);
@@ -148,27 +148,22 @@
 
   ERROR_ID = 1;
 
-  call_stack_location = function() {
-    var err, orig, stack;
+  wrap_callback = function(callback, location) {
+    var new_callback, orig, trace_error;
     orig = Error.prepareStackTrace;
     Error.prepareStackTrace = function(x, stack) {
       return stack;
     };
-    err = new Error();
-    Error.captureStackTrace(err, arguments.callee);
-    stack = err.stack;
-    Error.prepareStackTrace = orig;
-    if (stack[2] == null) {
-      return 'bad call_stack_location';
-    }
-    return "" + (stack[2].getFunctionName()) + " (" + (stack[2].getFileName()) + ":" + (stack[2].getLineNumber()) + ")";
-  };
-
-  wrap_callback = function(callback, location) {
-    var new_callback, trace_error;
     trace_error = new Error();
+    Error.captureStackTrace(trace_error, arguments.callee);
+    trace_error.__stack__ = trace_error.stack;
+    Error.prepareStackTrace = orig;
     trace_error.id = ERROR_ID++;
-    trace_error.location = call_stack_location();
+    if (trace_error.stack[1]) {
+      trace_error.location = "" + (trace_error.stack[1].getFunctionName()) + " (" + (trace_error.stack[1].getFileName()) + ":" + (trace_error.stack[1].getLineNumber()) + ")";
+    } else {
+      trace_error.location = 'bad call_stack_location';
+    }
     trace_error.__location__ = location;
     trace_error.__previous__ = current_trace_error;
     trace_error.__trace_count__ = current_trace_error != null ? current_trace_error.__trace_count__ + 1 : 1;
