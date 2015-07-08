@@ -71,7 +71,7 @@ prepareStackTrace = (error, structured_stack_trace) ->
     error.__previous__ = current_trace_error if !error.__previous__? and in_prepare is 1
     
     if error.__previous__?
-      previous_stack = error.__previous__.__cached_trace__
+      previous_stack = error.__previous__.stack
       if previous_stack?.length > 0
         error.__cached_trace__.push(create_callsite(exports.empty_frame))
         error.__cached_trace__.push(previous_stack...)
@@ -90,15 +90,7 @@ limit_frames = (stack) ->
   while previous? and count > 1
     previous = previous.__previous__
     --count
-  if previous?
-    which_previous_must_delete = previous
-    if previous?.__previous__?.__cached_trace__
-      len = previous.__previous__.__cached_trace__.length
-      previous = stack
-      while previous? and previous != which_previous_must_delete.__previous__ and previous.__cached_trace__.length >= (len+1)
-        previous.__cached_trace__.length -= (len+1)
-        previous = previous.__previous__
-    delete previous.__previous__
+  delete previous.__previous__ if previous?
 
 ERROR_ID = 1
 
@@ -119,7 +111,6 @@ wrap_callback = (callback, location) ->
   trace_error.__location__ = location
   trace_error.__previous__ = current_trace_error
   trace_error.__trace_count__ = if current_trace_error? then current_trace_error.__trace_count__ + 1 else 1
-  trace_error.stack
   
   limit_frames(trace_error)
   
