@@ -109,11 +109,21 @@
     var previous_stack, _ref;
     ++in_prepare;
     if (error.__cached_trace__ == null) {
-      error.__cached_trace__ = structured_stack_trace.filter(function(f) {
-        return f.getFileName() !== filename;
+      Object.defineProperty(error, '__cached_trace__', {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: structured_stack_trace.filter(function(f) {
+          return f.getFileName() !== filename;
+        })
       });
       if ((error.__previous__ == null) && in_prepare === 1) {
-        error.__previous__ = current_trace_error;
+        Object.defineProperty(error, '__previous__', {
+          writable: true,
+          enumerable: false,
+          configurable: true,
+          value: current_trace_error
+        });
       }
       if (error.__previous__ != null) {
         previous_stack = prepareStackTrace(error.__previous__, error.__previous__.__stack__);

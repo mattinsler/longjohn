@@ -67,9 +67,20 @@ prepareStackTrace = (error, structured_stack_trace) ->
   ++in_prepare
   
   unless error.__cached_trace__?
-    error.__cached_trace__ = structured_stack_trace.filter (f) -> f.getFileName() isnt filename
-    error.__previous__ = current_trace_error if !error.__previous__? and in_prepare is 1
-    
+    Object.defineProperty(error, '__cached_trace__', {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: structured_stack_trace.filter (f) -> f.getFileName() isnt filename
+    });
+    if !error.__previous__? and in_prepare is 1
+      Object.defineProperty(error, '__previous__', {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: current_trace_error
+      });
+
     if error.__previous__?
       previous_stack =prepareStackTrace(error.__previous__, error.__previous__.__stack__)
       if previous_stack?.length > 0
