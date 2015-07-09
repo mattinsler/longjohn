@@ -1,4 +1,6 @@
 {EventEmitter} = require 'events'
+if EventEmitter.prototype.on?['longjohn']
+  return module.exports = EventEmitter.prototype.on['longjohn']
 filename = __filename
 current_trace_error = null
 in_prepare = 0
@@ -171,6 +173,13 @@ EventEmitter.prototype.listeners = (event) ->
     else
       unwrapped.push l
   return unwrapped
+
+Object.defineProperty(EventEmitter.prototype.on, 'longjohn', {
+  writable: true,
+  enumerable: false,
+  configurable: true,
+  value: this
+});
 
 _nextTick = process.nextTick
 

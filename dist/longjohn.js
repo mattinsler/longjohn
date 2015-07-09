@@ -1,7 +1,11 @@
 (function() {
-  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _once, _setImmediate, _setInterval, _setTimeout;
+  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _once, _ref, _setImmediate, _setInterval, _setTimeout;
 
   EventEmitter = require('events').EventEmitter;
+
+  if ((_ref = EventEmitter.prototype.on) != null ? _ref['longjohn'] : void 0) {
+    return module.exports = EventEmitter.prototype.on['longjohn'];
+  }
 
   filename = __filename;
 
@@ -106,7 +110,7 @@
   };
 
   prepareStackTrace = function(error, structured_stack_trace) {
-    var previous_stack, _ref;
+    var previous_stack, _ref1;
     ++in_prepare;
     if (error.__cached_trace__ == null) {
       Object.defineProperty(error, '__cached_trace__', {
@@ -129,7 +133,7 @@
         previous_stack = prepareStackTrace(error.__previous__, error.__previous__.__stack__);
         if ((previous_stack != null ? previous_stack.length : void 0) > 0) {
           error.__cached_trace__.push(create_callsite(exports.empty_frame));
-          (_ref = error.__cached_trace__).push.apply(_ref, previous_stack);
+          (_ref1 = error.__cached_trace__).push.apply(_ref1, previous_stack);
         }
       }
     }
@@ -239,6 +243,13 @@
     }
     return unwrapped;
   };
+
+  Object.defineProperty(EventEmitter.prototype.on, 'longjohn', {
+    writable: true,
+    enumerable: false,
+    configurable: true,
+    value: this
+  });
 
   _nextTick = process.nextTick;
 
