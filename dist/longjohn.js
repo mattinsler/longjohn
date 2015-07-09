@@ -1,5 +1,5 @@
 (function() {
-  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _once, _removeListener, _setImmediate, _setInterval, _setTimeout;
+  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _once, _setImmediate, _setInterval, _setTimeout;
 
   EventEmitter = require('events').EventEmitter;
 
@@ -182,7 +182,7 @@
         current_trace_error = null;
       }
     };
-    new_callback.__original_callback__ = callback;
+    new_callback.listener = callback;
     return new_callback;
   };
 
@@ -191,8 +191,6 @@
   _addListener = EventEmitter.prototype.addListener;
 
   _once = EventEmitter.prototype.once;
-
-  _removeListener = EventEmitter.prototype.removeListener;
 
   _listeners = EventEmitter.prototype.listeners;
 
@@ -217,47 +215,14 @@
     return _once.apply(this, args);
   };
 
-  EventEmitter.prototype.removeListener = function(event, callback) {
-    var find_listener, listener,
-      _this = this;
-    find_listener = function(callback) {
-      var is_callback, l, listeners, _i, _len, _ref, _ref1;
-      is_callback = function(val) {
-        var _ref, _ref1, _ref2;
-        return val.__original_callback__ === callback || ((_ref = val.__original_callback__) != null ? (_ref1 = _ref.listener) != null ? _ref1.__original_callback__ : void 0 : void 0) === callback || ((_ref2 = val.listener) != null ? _ref2.__original_callback__ : void 0) === callback;
-      };
-      if (((_ref = _this._events) != null ? _ref[event] : void 0) == null) {
-        return null;
-      }
-      if (is_callback(_this._events[event])) {
-        return _this._events[event];
-      }
-      if (Array.isArray(_this._events[event])) {
-        listeners = (_ref1 = _this._events[event]) != null ? _ref1 : [];
-        for (_i = 0, _len = listeners.length; _i < _len; _i++) {
-          l = listeners[_i];
-          if (is_callback(l)) {
-            return l;
-          }
-        }
-      }
-      return null;
-    };
-    listener = find_listener(callback);
-    if (!((listener != null) && typeof listener === 'function')) {
-      return this;
-    }
-    return _removeListener.call(this, event, listener);
-  };
-
   EventEmitter.prototype.listeners = function(event) {
     var l, listeners, unwrapped, _i, _len;
     listeners = _listeners.call(this, event);
     unwrapped = [];
     for (_i = 0, _len = listeners.length; _i < _len; _i++) {
       l = listeners[_i];
-      if (l.__original_callback__) {
-        unwrapped.push(l.__original_callback__);
+      if (l.listener) {
+        unwrapped.push(l.listener);
       } else {
         unwrapped.push(l);
       }

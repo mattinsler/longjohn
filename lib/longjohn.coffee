@@ -126,7 +126,7 @@ wrap_callback = (callback, location) ->
     finally
       current_trace_error = null
   
-  new_callback.__original_callback__ = callback
+  new_callback.listener = callback
   new_callback
 
 
@@ -134,7 +134,6 @@ wrap_callback = (callback, location) ->
 _on = EventEmitter.prototype.on
 _addListener = EventEmitter.prototype.addListener
 _once = EventEmitter.prototype.once
-_removeListener = EventEmitter.prototype.removeListener
 _listeners = EventEmitter.prototype.listeners
 
 EventEmitter.prototype.addListener = (event, callback) ->
@@ -152,33 +151,12 @@ EventEmitter.prototype.once = (event, callback) ->
   args[1] = wrap_callback(callback, 'EventEmitter.once')
   _once.apply(this, args)
 
-EventEmitter.prototype.removeListener = (event, callback) ->
-  find_listener = (callback) =>
-    is_callback = (val) ->
-      val.__original_callback__ is callback or
-      val.__original_callback__?.listener?.__original_callback__ is callback or
-      val.listener?.__original_callback__ is callback
-    
-    return null unless @_events?[event]?
-    return @_events[event] if is_callback(@_events[event])
-    
-    if Array.isArray(@_events[event])
-      listeners = @_events[event] ? []
-      for l in listeners
-        return l if is_callback(l)
-    
-    null
-  
-  listener = find_listener(callback)
-  return @ unless listener? and typeof listener is 'function'
-  _removeListener.call(@, event, listener)
-
 EventEmitter.prototype.listeners = (event) ->
   listeners = _listeners.call(this, event)
   unwrapped = []
   for l in listeners
-    if l.__original_callback__
-      unwrapped.push l.__original_callback__
+    if l.listener
+      unwrapped.push l.listener
     else
       unwrapped.push l
   return unwrapped
