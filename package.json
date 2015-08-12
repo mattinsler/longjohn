@@ -15,12 +15,7 @@
   "bugs": {
     "url": "https://github.com/mattinsler/longjohn/issues"
   },
-  "licenses": [
-    {
-      "type": "MIT",
-      "url": "https://github.com/mattinsler/longjohn/blob/master/LICENSE-MIT"
-    }
-  ],
+  "license": "MIT",
   "main": "dist/longjohn",
   "engines": {
     "node": ">= 0.6.0"
