@@ -1,7 +1,11 @@
 (function() {
-  var ERROR_ID, EventEmitter, call_stack_location, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _once, _removeListener, _setImmediate, _setInterval, _setTimeout;
+  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _once, _ref, _setImmediate, _setInterval, _setTimeout;
 
   EventEmitter = require('events').EventEmitter;
+
+  if ((_ref = EventEmitter.prototype.on) != null ? _ref['longjohn'] : void 0) {
+    return module.exports = EventEmitter.prototype.on['longjohn'];
+  }
 
   filename = __filename;
 
@@ -106,20 +110,30 @@
   };
 
   prepareStackTrace = function(error, structured_stack_trace) {
-    var previous_stack, _ref;
+    var previous_stack, _ref1;
     ++in_prepare;
     if (error.__cached_trace__ == null) {
-      error.__cached_trace__ = structured_stack_trace.filter(function(f) {
-        return f.getFileName() !== filename;
+      Object.defineProperty(error, '__cached_trace__', {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: structured_stack_trace.filter(function(f) {
+          return f.getFileName() !== filename;
+        })
       });
       if ((error.__previous__ == null) && in_prepare === 1) {
-        error.__previous__ = current_trace_error;
+        Object.defineProperty(error, '__previous__', {
+          writable: true,
+          enumerable: false,
+          configurable: true,
+          value: current_trace_error
+        });
       }
       if (error.__previous__ != null) {
-        previous_stack = error.__previous__.__cached_trace__;
+        previous_stack = prepareStackTrace(error.__previous__, error.__previous__.__stack__);
         if ((previous_stack != null ? previous_stack.length : void 0) > 0) {
           error.__cached_trace__.push(create_callsite(exports.empty_frame));
-          (_ref = error.__cached_trace__).push.apply(_ref, previous_stack);
+          (_ref1 = error.__cached_trace__).push.apply(_ref1, previous_stack);
         }
       }
     }
@@ -131,7 +145,7 @@
   };
 
   limit_frames = function(stack) {
-    var count, len, previous, which_previous_must_delete, _ref;
+    var count, previous;
     if (exports.async_trace_limit <= 0) {
       return;
     }
@@ -142,46 +156,31 @@
       --count;
     }
     if (previous != null) {
-      which_previous_must_delete = previous;
-      if (previous != null ? (_ref = previous.__previous__) != null ? _ref.__cached_trace__ : void 0 : void 0) {
-        len = previous.__previous__.__cached_trace__.length;
-        previous = stack;
-        while ((previous != null) && previous !== which_previous_must_delete.__previous__ && previous.__cached_trace__.length >= len + 1) {
-          previous.__cached_trace__.length -= len + 1;
-          previous = previous.__previous__;
-        }
-      }
       return delete previous.__previous__;
     }
   };
 
   ERROR_ID = 1;
 
-  call_stack_location = function() {
-    var err, orig, stack;
+  wrap_callback = function(callback, location) {
+    var new_callback, orig, trace_error;
     orig = Error.prepareStackTrace;
     Error.prepareStackTrace = function(x, stack) {
       return stack;
     };
-    err = new Error();
-    Error.captureStackTrace(err, arguments.callee);
-    stack = err.stack;
-    Error.prepareStackTrace = orig;
-    if (stack[2] == null) {
-      return 'bad call_stack_location';
-    }
-    return "" + (stack[2].getFunctionName()) + " (" + (stack[2].getFileName()) + ":" + (stack[2].getLineNumber()) + ")";
-  };
-
-  wrap_callback = function(callback, location) {
-    var new_callback, trace_error;
     trace_error = new Error();
+    Error.captureStackTrace(trace_error, arguments.callee);
+    trace_error.__stack__ = trace_error.stack;
+    Error.prepareStackTrace = orig;
     trace_error.id = ERROR_ID++;
-    trace_error.location = call_stack_location();
+    if (trace_error.stack[1]) {
+      trace_error.location = "" + (trace_error.stack[1].getFunctionName()) + " (" + (trace_error.stack[1].getFileName()) + ":" + (trace_error.stack[1].getLineNumber()) + ")";
+    } else {
+      trace_error.location = 'bad call_stack_location';
+    }
     trace_error.__location__ = location;
     trace_error.__previous__ = current_trace_error;
     trace_error.__trace_count__ = current_trace_error != null ? current_trace_error.__trace_count__ + 1 : 1;
-    trace_error.stack;
     limit_frames(trace_error);
     new_callback = function() {
       var e;
@@ -197,7 +196,7 @@
         current_trace_error = null;
       }
     };
-    new_callback.__original_callback__ = callback;
+    new_callback.listener = callback;
     return new_callback;
   };
 
@@ -206,8 +205,6 @@
   _addListener = EventEmitter.prototype.addListener;
 
   _once = EventEmitter.prototype.once;
-
-  _removeListener = EventEmitter.prototype.removeListener;
 
   _listeners = EventEmitter.prototype.listeners;
 
@@ -232,53 +229,27 @@
     return _once.apply(this, args);
   };
 
-  EventEmitter.prototype.removeListener = function(event, callback) {
-    var find_listener, listener,
-      _this = this;
-    find_listener = function(callback) {
-      var is_callback, l, listeners, _i, _len, _ref, _ref1;
-      is_callback = function(val) {
-        var _ref, _ref1, _ref2;
-        return val.__original_callback__ === callback || ((_ref = val.__original_callback__) != null ? (_ref1 = _ref.listener) != null ? _ref1.__original_callback__ : void 0 : void 0) === callback || ((_ref2 = val.listener) != null ? _ref2.__original_callback__ : void 0) === callback;
-      };
-      if (((_ref = _this._events) != null ? _ref[event] : void 0) == null) {
-        return null;
-      }
-      if (is_callback(_this._events[event])) {
-        return _this._events[event];
-      }
-      if (Array.isArray(_this._events[event])) {
-        listeners = (_ref1 = _this._events[event]) != null ? _ref1 : [];
-        for (_i = 0, _len = listeners.length; _i < _len; _i++) {
-          l = listeners[_i];
-          if (is_callback(l)) {
-            return l;
-          }
-        }
-      }
-      return null;
-    };
-    listener = find_listener(callback);
-    if (!((listener != null) && typeof listener === 'function')) {
-      return this;
-    }
-    return _removeListener.call(this, event, listener);
-  };
-
   EventEmitter.prototype.listeners = function(event) {
     var l, listeners, unwrapped, _i, _len;
     listeners = _listeners.call(this, event);
     unwrapped = [];
     for (_i = 0, _len = listeners.length; _i < _len; _i++) {
       l = listeners[_i];
-      if (l.__original_callback__) {
-        unwrapped.push(l.__original_callback__);
+      if (l.listener) {
+        unwrapped.push(l.listener);
       } else {
         unwrapped.push(l);
       }
     }
     return unwrapped;
   };
+
+  Object.defineProperty(EventEmitter.prototype.on, 'longjohn', {
+    writable: true,
+    enumerable: false,
+    configurable: true,
+    value: this
+  });
 
   _nextTick = process.nextTick;
 

@@ -80,6 +80,21 @@ describe 'longjohn', ->
     emitter.emit('foo')
     
     assert.equal(count, 1)
+
+  it 'should work with removeAllListeners (issue #32)', ->
+    {EventEmitter} = require 'events'
+
+    count = 0
+    foo = -> ++count
+
+    emitter = new EventEmitter()
+
+    emitter.on('removeListener', foo)
+    emitter.on('dummy', foo)
+
+    emitter.removeAllListeners('dummy', foo)
+
+    assert.equal(count, 1)
   
   it 'should work with setTimeout', (done) ->
     setTimeout ->

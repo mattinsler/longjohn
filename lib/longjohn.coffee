@@ -1,4 +1,6 @@
 {EventEmitter} = require 'events'
+if EventEmitter.prototype.on?['longjohn']
+  return module.exports = EventEmitter.prototype.on['longjohn']
 filename = __filename
 current_trace_error = null
 in_prepare = 0
@@ -67,11 +69,22 @@ prepareStackTrace = (error, structured_stack_trace) ->
   ++in_prepare
   
   unless error.__cached_trace__?
-    error.__cached_trace__ = structured_stack_trace.filter (f) -> f.getFileName() isnt filename
-    error.__previous__ = current_trace_error if !error.__previous__? and in_prepare is 1
-    
+    Object.defineProperty(error, '__cached_trace__', {
+      writable: true,
+      enumerable: false,
+      configurable: true,
+      value: structured_stack_trace.filter (f) -> f.getFileName() isnt filename
+    });
+    if !error.__previous__? and in_prepare is 1
+      Object.defineProperty(error, '__previous__', {
+        writable: true,
+        enumerable: false,
+        configurable: true,
+        value: current_trace_error
+      });
+
     if error.__previous__?
-      previous_stack = error.__previous__.__cached_trace__
+      previous_stack =prepareStackTrace(error.__previous__, error.__previous__.__stack__)
       if previous_stack?.length > 0
         error.__cached_trace__.push(create_callsite(exports.empty_frame))
         error.__cached_trace__.push(previous_stack...)
@@ -90,36 +103,25 @@ limit_frames = (stack) ->
   while previous? and count > 1
     previous = previous.__previous__
     --count
-  if previous?
-    which_previous_must_delete = previous
-    if previous?.__previous__?.__cached_trace__
-      len = previous.__previous__.__cached_trace__.length
-      previous = stack
-      while previous? and previous != which_previous_must_delete.__previous__ and previous.__cached_trace__.length >= (len+1)
-        previous.__cached_trace__.length -= (len+1)
-        previous = previous.__previous__
-    delete previous.__previous__
+  delete previous.__previous__ if previous?
 
 ERROR_ID = 1
 
-call_stack_location = ->
+wrap_callback = (callback, location) ->
   orig = Error.prepareStackTrace
   Error.prepareStackTrace = (x, stack) -> stack
-  err = new Error()
-  Error.captureStackTrace(err, arguments.callee)
-  stack = err.stack
-  Error.prepareStackTrace = orig
-  return 'bad call_stack_location' unless stack[2]?
-  "#{stack[2].getFunctionName()} (#{stack[2].getFileName()}:#{stack[2].getLineNumber()})"
-
-wrap_callback = (callback, location) ->
   trace_error = new Error()
+  Error.captureStackTrace(trace_error, arguments.callee)
+  trace_error.__stack__ = trace_error.stack;
+  Error.prepareStackTrace = orig
   trace_error.id = ERROR_ID++
-  trace_error.location = call_stack_location()
+  if trace_error.stack[1]
+    trace_error.location = "#{trace_error.stack[1].getFunctionName()} (#{trace_error.stack[1].getFileName()}:#{trace_error.stack[1].getLineNumber()})";
+  else
+    trace_error.location = 'bad call_stack_location'
   trace_error.__location__ = location
   trace_error.__previous__ = current_trace_error
   trace_error.__trace_count__ = if current_trace_error? then current_trace_error.__trace_count__ + 1 else 1
-  trace_error.stack
   
   limit_frames(trace_error)
   
@@ -137,7 +139,7 @@ wrap_callback = (callback, location) ->
     finally
       current_trace_error = null
   
-  new_callback.__original_callback__ = callback
+  new_callback.listener = callback
   new_callback
 
 
@@ -145,7 +147,6 @@ wrap_callback = (callback, location) ->
 _on = EventEmitter.prototype.on
 _addListener = EventEmitter.prototype.addListener
 _once = EventEmitter.prototype.once
-_removeListener = EventEmitter.prototype.removeListener
 _listeners = EventEmitter.prototype.listeners
 
 EventEmitter.prototype.addListener = (event, callback) ->
@@ -163,36 +164,22 @@ EventEmitter.prototype.once = (event, callback) ->
   args[1] = wrap_callback(callback, 'EventEmitter.once')
   _once.apply(this, args)
 
-EventEmitter.prototype.removeListener = (event, callback) ->
-  find_listener = (callback) =>
-    is_callback = (val) ->
-      val.__original_callback__ is callback or
-      val.__original_callback__?.listener?.__original_callback__ is callback or
-      val.listener?.__original_callback__ is callback
-    
-    return null unless @_events?[event]?
-    return @_events[event] if is_callback(@_events[event])
-    
-    if Array.isArray(@_events[event])
-      listeners = @_events[event] ? []
-      for l in listeners
-        return l if is_callback(l)
-    
-    null
-  
-  listener = find_listener(callback)
-  return @ unless listener? and typeof listener is 'function'
-  _removeListener.call(@, event, listener)
-
 EventEmitter.prototype.listeners = (event) ->
   listeners = _listeners.call(this, event)
   unwrapped = []
   for l in listeners
-    if l.__original_callback__
-      unwrapped.push l.__original_callback__
+    if l.listener
+      unwrapped.push l.listener
     else
       unwrapped.push l
   return unwrapped
+
+Object.defineProperty(EventEmitter.prototype.on, 'longjohn', {
+  writable: true,
+  enumerable: false,
+  configurable: true,
+  value: this
+});
 
 _nextTick = process.nextTick
 
