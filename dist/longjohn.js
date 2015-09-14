@@ -1,11 +1,15 @@
 (function() {
-  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _once, _ref, _setImmediate, _setInterval, _setTimeout;
+  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, source_map, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _once, _ref, _setImmediate, _setInterval, _setTimeout;
 
   EventEmitter = require('events').EventEmitter;
 
   if ((_ref = EventEmitter.prototype.on) != null ? _ref['longjohn'] : void 0) {
     return module.exports = EventEmitter.prototype.on['longjohn'];
   }
+
+  source_map = require('source-map-support');
+
+  source_map.install();
 
   filename = __filename;
 
@@ -58,16 +62,10 @@
   };
 
   exports.format_stack_frame = function(frame) {
-    var location, method;
     if (frame.getFileName() === exports.empty_frame) {
       return exports.empty_frame;
     }
-    method = format_method(frame);
-    location = format_location(frame);
-    if (method == null) {
-      return "    at " + location;
-    }
-    return "    at " + method + " (" + location + ")";
+    return '    at ' + source_map.wrapCallSite(frame);
   };
 
   exports.format_stack = function(err, frames) {

@@ -1,6 +1,10 @@
 {EventEmitter} = require 'events'
 if EventEmitter.prototype.on?['longjohn']
   return module.exports = EventEmitter.prototype.on['longjohn']
+
+source_map = require 'source-map-support'
+source_map.install()
+
 filename = __filename
 current_trace_error = null
 in_prepare = 0
@@ -11,39 +15,34 @@ exports.async_trace_limit = 10
 format_location = (frame) ->
   return 'native' if frame.isNative()
   return 'eval at ' + frame.getEvalOrigin() if frame.isEval()
-  
+
   file = frame.getFileName()
   file = frame.getFileName() || '<anonymous>'
   line = frame.getLineNumber()
   column = frame.getColumnNumber()
-  
+
   column = if column? then ':' + column else ''
   line = if line? then ':' + line else ''
-  
+
   file + line + column
 
 format_method = (frame) ->
   function_name = frame.getFunctionName()
-  
+
   unless frame.isToplevel() or frame.isConstructor()
     method = frame.getMethodName()
     type = frame.getTypeName()
     return "#{type}.#{method ? '<anonymous>'}" unless function_name?
     return "#{type}.#{function_name}" if method is function_name
     "#{type}.#{function_name} [as #{method}]"
-  
+
   return "new #{function_name ? '<anonymous>'}" if frame.isConstructor()
   return function_name if function_name?
   null
 
 exports.format_stack_frame = (frame) ->
   return exports.empty_frame if frame.getFileName() is exports.empty_frame
-  
-  method = format_method(frame)
-  location = format_location(frame)
-  
-  return "    at #{location}" unless method?
-  "    at #{method} (#{location})"
+  return '    at ' + source_map.wrapCallSite(frame)
 
 exports.format_stack = (err, frames) ->
   lines = []
@@ -67,7 +66,7 @@ create_callsite = (location) ->
 
 prepareStackTrace = (error, structured_stack_trace) ->
   ++in_prepare
-  
+
   unless error.__cached_trace__?
     Object.defineProperty(error, '__cached_trace__', {
       writable: true,
@@ -88,18 +87,18 @@ prepareStackTrace = (error, structured_stack_trace) ->
       if previous_stack?.length > 0
         error.__cached_trace__.push(create_callsite(exports.empty_frame))
         error.__cached_trace__.push(previous_stack...)
-  
+
   --in_prepare
-  
+
   return error.__cached_trace__ if in_prepare > 0
   exports.format_stack(error, error.__cached_trace__)
 
 limit_frames = (stack) ->
   return if exports.async_trace_limit <= 0
-  
+
   count = exports.async_trace_limit - 1
   previous = stack
-  
+
   while previous? and count > 1
     previous = previous.__previous__
     --count
@@ -122,9 +121,9 @@ wrap_callback = (callback, location) ->
   trace_error.__location__ = location
   trace_error.__previous__ = current_trace_error
   trace_error.__trace_count__ = if current_trace_error? then current_trace_error.__trace_count__ + 1 else 1
-  
+
   limit_frames(trace_error)
-  
+
   new_callback = ->
     current_trace_error = trace_error
     # Clear trace_error variable from the closure, so it can potentially be garbage collected.
@@ -138,7 +137,7 @@ wrap_callback = (callback, location) ->
       throw e
     finally
       current_trace_error = null
-  
+
   new_callback.listener = callback
   new_callback
 

@@ -14,7 +14,7 @@ Please thank [tlrobinson](https://github.com/tlrobinson) for the initial impleme
 
 Longjohn collects a large amount of data in order to provide useful stack traces. While it is very helpful in
 development and testing environments, it is not recommended to use longjohn in production. The data collection puts
-a lot of strain on V8's garbage collector and can greatly slow down heavily-loaded applications. 
+a lot of strain on V8's garbage collector and can greatly slow down heavily-loaded applications.
 
 ## Installation
 
@@ -49,4 +49,15 @@ longjohn.async_trace_limit = -1;  // unlimited
 
 ```javascript
 longjohn.empty_frame = 'ASYNC CALLBACK';  // defaults to '---------------------------------------------'
+```
+
+## Use with Source Maps
+
+As of version 0.2.9 longjonn supports source maps. Just compile your code down to
+javascript with source map support and run like normal.
+
+For coffee-script, this would look like:
+
+```bash
+$ coffee --map --compile script.coffee
 ```
