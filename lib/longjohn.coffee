@@ -1,4 +1,5 @@
 {EventEmitter} = require 'events'
+util = require 'util'
 if EventEmitter.prototype.on?['longjohn']
   return module.exports = EventEmitter.prototype.on['longjohn']
 
@@ -145,7 +146,6 @@ wrap_callback = (callback, location) ->
 
 _on = EventEmitter.prototype.on
 _addListener = EventEmitter.prototype.addListener
-_once = EventEmitter.prototype.once
 _listeners = EventEmitter.prototype.listeners
 
 EventEmitter.prototype.addListener = (event, callback) ->
@@ -160,8 +160,19 @@ EventEmitter.prototype.on = (event, callback) ->
 
 EventEmitter.prototype.once = (event, callback) ->
   args = Array::slice.call(arguments)
-  args[1] = wrap_callback(callback, 'EventEmitter.once')
-  _once.apply(this, args)
+  if !util.isFunction(callback)
+    throw TypeError('callback must be a function');
+  fired = false
+  wrap = wrap_callback(callback, 'EventEmitter.once');
+  g = () ->
+    this.removeListener(event, g)
+    if !fired
+      fired = true
+      wrap.apply(this, arguments)
+  g.listener = callback
+  args[1] = g;
+  _on.apply(this, args)
+  return this;
 
 EventEmitter.prototype.listeners = (event) ->
   listeners = _listeners.call(this, event)

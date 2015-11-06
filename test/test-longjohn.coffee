@@ -64,7 +64,7 @@ describe 'longjohn', ->
 
     assert.equal(count, 3)
 
-  it 'should work with removeListener', ->
+  it 'should work with on/removeListener', ->
     {EventEmitter} = require 'events'
 
     count = 0
@@ -81,7 +81,7 @@ describe 'longjohn', ->
 
     assert.equal(count, 1)
 
-  it 'should work with removeAllListeners (issue #32)', ->
+  it 'should work with on/removeAllListeners (issue #32)', ->
     {EventEmitter} = require 'events'
 
     count = 0
@@ -92,9 +92,60 @@ describe 'longjohn', ->
     emitter.on('removeListener', foo)
     emitter.on('dummy', foo)
 
-    emitter.removeAllListeners('dummy', foo)
+    emitter.removeAllListeners('dummy')
 
     assert.equal(count, 1)
+
+  it 'should work with once/emit', ->
+    {EventEmitter} = require 'events'
+
+    count = 0
+    foo = -> ++count
+
+    emitter = new EventEmitter()
+
+    emitter.once('foo', foo)
+
+    emitter.emit('foo')
+    emitter.emit('foo')
+    emitter.emit('foo')
+
+    assert.equal(count, 1)
+
+  it 'should work with once/removeListener', ->
+    {EventEmitter} = require 'events'
+
+    count = 0
+    foo = -> ++count
+
+    emitter = new EventEmitter()
+
+    emitter.once('foo', foo)
+    emitter.once('foo', foo)
+
+    emitter.removeListener('foo', foo)
+
+    emitter.emit('foo')
+    emitter.emit('foo')
+    assert.equal(count, 1)
+
+  it 'should work with once/removeAllListeners', ->
+    {EventEmitter} = require 'events'
+
+    count = 0
+    foo = -> ++count
+
+    emitter = new EventEmitter()
+
+    emitter.once('removeListener', foo)
+
+    emitter.on('dummy', foo)
+    emitter.removeAllListeners('dummy')
+    emitter.on('dummy', foo)
+    emitter.removeAllListeners('dummy')
+
+    assert.equal(count, 1)
+
 
   it 'should work with setTimeout', (done) ->
     setTimeout ->

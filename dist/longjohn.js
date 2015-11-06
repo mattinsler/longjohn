@@ -1,7 +1,9 @@
 (function() {
-  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, source_map, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _once, _ref, _setImmediate, _setInterval, _setTimeout;
+  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, source_map, util, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _ref, _setImmediate, _setInterval, _setTimeout;
 
   EventEmitter = require('events').EventEmitter;
+
+  util = require('util');
 
   if ((_ref = EventEmitter.prototype.on) != null ? _ref['longjohn'] : void 0) {
     return module.exports = EventEmitter.prototype.on['longjohn'];
@@ -202,8 +204,6 @@
 
   _addListener = EventEmitter.prototype.addListener;
 
-  _once = EventEmitter.prototype.once;
-
   _listeners = EventEmitter.prototype.listeners;
 
   EventEmitter.prototype.addListener = function(event, callback) {
@@ -221,10 +221,24 @@
   };
 
   EventEmitter.prototype.once = function(event, callback) {
-    var args;
+    var args, fired, g, wrap;
     args = Array.prototype.slice.call(arguments);
-    args[1] = wrap_callback(callback, 'EventEmitter.once');
-    return _once.apply(this, args);
+    if (!util.isFunction(callback)) {
+      throw TypeError('callback must be a function');
+    }
+    fired = false;
+    wrap = wrap_callback(callback, 'EventEmitter.once');
+    g = function() {
+      this.removeListener(event, g);
+      if (!fired) {
+        fired = true;
+        return wrap.apply(this, arguments);
+      }
+    };
+    g.listener = callback;
+    args[1] = g;
+    _on.apply(this, args);
+    return this;
   };
 
   EventEmitter.prototype.listeners = function(event) {
