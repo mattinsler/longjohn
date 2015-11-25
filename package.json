@@ -18,7 +18,7 @@
   "license": "MIT",
   "main": "dist/longjohn",
   "engines": {
-    "node": ">= 0.6.0"
+    "node": ">= 0.9.3"
   },
   "devDependencies": {
     "grunt": "~0.4.0",
