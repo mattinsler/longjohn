@@ -1,9 +1,7 @@
 (function() {
-  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, source_map, util, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _ref, _setImmediate, _setInterval, _setTimeout;
+  var ERROR_ID, EventEmitter, create_callsite, current_trace_error, filename, format_location, format_method, in_prepare, limit_frames, prepareStackTrace, source_map, wrap_callback, __nextDomainTick, _addListener, _listeners, _nextTick, _on, _ref, _setImmediate, _setInterval, _setTimeout;
 
   EventEmitter = require('events').EventEmitter;
-
-  util = require('util');
 
   if ((_ref = EventEmitter.prototype.on) != null ? _ref['longjohn'] : void 0) {
     return module.exports = EventEmitter.prototype.on['longjohn'];
@@ -223,7 +221,7 @@
   EventEmitter.prototype.once = function(event, callback) {
     var args, fired, g, wrap;
     args = Array.prototype.slice.call(arguments);
-    if (!util.isFunction(callback)) {
+    if (typeof callback !== 'function') {
       throw TypeError('callback must be a function');
     }
     fired = false;
