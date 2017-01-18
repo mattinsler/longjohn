@@ -212,31 +212,24 @@
   };
 
   EventEmitter.prototype.on = function(event, callback) {
-    var args;
+    var args, g, wrap;
     args = Array.prototype.slice.call(arguments);
-    args[1] = wrap_callback(callback, 'EventEmitter.on');
-    return _on.apply(this, args);
-  };
-
-  EventEmitter.prototype.once = function(event, callback) {
-    var args, fired, g, wrap;
-    args = Array.prototype.slice.call(arguments);
-    if (typeof callback !== 'function') {
-      throw TypeError('callback must be a function');
+    if (callback.listener) {
+      wrap = wrap_callback(callback.listener, 'EventEmitter.once');
+      g = function() {
+        var fired;
+        this.removeListener(event, g);
+        if (!fired) {
+          fired = true;
+          return wrap.apply(this, arguments);
+        }
+      };
+      g.listener = callback.listener;
+    } else {
+      g = wrap_callback(callback, 'EventEmitter.on');
     }
-    fired = false;
-    wrap = wrap_callback(callback, 'EventEmitter.once');
-    g = function() {
-      this.removeListener(event, g);
-      if (!fired) {
-        fired = true;
-        return wrap.apply(this, arguments);
-      }
-    };
-    g.listener = callback;
     args[1] = g;
-    _on.apply(this, args);
-    return this;
+    return _on.apply(this, args);
   };
 
   EventEmitter.prototype.listeners = function(event) {
