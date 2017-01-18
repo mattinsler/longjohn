@@ -31,6 +31,6 @@
   },
   "keywords": [],
   "dependencies": {
-    "source-map-support": "0.3.2"
+    "source-map-support": "0.3.2 - 1.0.0"
   }
 }
