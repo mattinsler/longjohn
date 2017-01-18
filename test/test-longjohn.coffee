@@ -168,3 +168,13 @@ describe 'longjohn', ->
         clearImmediate(immediate_id)
         done()
       , 1, 2, 3
+
+  it 'once should call overriden on', (done) ->
+    Transform = require('stream').Transform
+
+    emitter = new Transform()
+
+    emitter.once('data', () -> )
+    emitter.once('end', done)
+
+    emitter.push(null)
