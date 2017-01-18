@@ -154,24 +154,25 @@ EventEmitter.prototype.addListener = (event, callback) ->
 
 EventEmitter.prototype.on = (event, callback) ->
   args = Array::slice.call(arguments)
-  args[1] = wrap_callback(callback, 'EventEmitter.on')
-  _on.apply(this, args)
 
-EventEmitter.prototype.once = (event, callback) ->
-  args = Array::slice.call(arguments)
-  if typeof callback != 'function'
-    throw TypeError('callback must be a function');
-  fired = false
-  wrap = wrap_callback(callback, 'EventEmitter.once');
-  g = () ->
-    this.removeListener(event, g)
-    if !fired
-      fired = true
-      wrap.apply(this, arguments)
-  g.listener = callback
+  # Coming from EventEmitter.prototype.once
+  if callback.listener
+    wrap = wrap_callback(callback.listener, 'EventEmitter.once');
+
+    g = () ->
+      this.removeListener(event, g)
+
+      if !fired
+        fired = true
+        wrap.apply(this, arguments)
+
+    g.listener = callback.listener;
+  else
+    g = wrap_callback(callback, 'EventEmitter.on')
+
   args[1] = g;
+
   _on.apply(this, args)
-  return this;
 
 EventEmitter.prototype.listeners = (event) ->
   listeners = _listeners.call(this, event)
